@@ -172,7 +172,7 @@
   <joint name="gripper" type="prismatic">
     <parent link="link5"/>
     <child link="gripper_link"/>
-    <origin xyz="0.0817 0.021 0.0" rpy="0 0 0"/>
+    <origin xyz="0.0750 0 0.03" rpy="1.57078 3.14 -1.57078"/>
     <axis xyz="0 1 0"/>
     <limit velocity="4.8" effort="1" lower="-0.010" upper="0.019" />
   </joint>
