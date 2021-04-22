@@ -181,6 +181,41 @@ class GripperDynamixel : public robotis_manipulator::ToolActuator
   double receiveDynamixelValue();
 };
 
+class RotorTool : public robotis_manipulator::ToolActuator
+{
+ private:
+  DynamixelWorkbench *dynamixel_workbench_;
+  Joint dynamixel_;
+
+ public:
+  RotorTool() {}
+  virtual ~RotorTool() {}
+
+
+  /*****************************************************************************
+  ** Tool Dynamixel Control Functions
+  *****************************************************************************/
+  virtual void init(uint8_t actuator_id, const void *arg);
+  virtual void setMode(const void *arg);
+  virtual uint8_t getId();
+
+  virtual void enable();
+  virtual void disable();
+
+  virtual bool sendToolActuatorValue(robotis_manipulator::ActuatorValue value);
+  virtual robotis_manipulator::ActuatorValue receiveToolActuatorValue();
+  bool initialize(uint8_t actuator_id, STRING dxl_device_name, STRING dxl_baud_rate);
+  bool setOperatingMode();
+  bool writeProfileValue(STRING profile_mode, uint32_t value);
+  bool setSDKHandler();
+  bool writeGoalVelocity(double velocity);
+  double receiveDynamixelValue();
+
+};
+
+
+
+
 } // namespace DYNAMIXEL
 #endif // DYNAMIXEL_H_
 
