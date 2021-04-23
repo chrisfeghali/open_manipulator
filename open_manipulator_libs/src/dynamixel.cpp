@@ -971,3 +971,242 @@ double GripperDynamixel::receiveDynamixelValue()
 
   return dynamixel_workbench_->convertValue2Radian(dynamixel_.id.at(0), get_value);
 }
+
+/*****************************************************************************
+** RotorTool Functions
+*****************************************************************************/
+
+void RotorTool::init(uint8_t actuator_id, const void *arg)
+{
+  STRING *get_arg_ = (STRING *)arg;
+
+  bool result = RotorTool::initialize(actuator_id ,get_arg_[0], get_arg_[1]);
+
+  if (result == false)
+    return;
+}
+
+bool RotorTool::initialize(uint8_t actuator_id, STRING dxl_device_name, STRING dxl_baud_rate)
+{
+  const char* log = NULL;
+  bool result = false;
+
+  STRING return_delay_time_st = "Return_Delay_Time";
+  const char * return_delay_time_char = return_delay_time_st.c_str();
+
+  dynamixel_.id.push_back(actuator_id);
+  dynamixel_.num = 1;
+
+  dynamixel_workbench_ = new DynamixelWorkbench;
+
+  result = dynamixel_workbench_->init(dxl_device_name.c_str(), std::atoi(dxl_baud_rate.c_str()), &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+
+  uint16_t get_model_number;
+  result = dynamixel_workbench_->ping(dynamixel_.id.at(0), &get_model_number, &log);
+  if (result == false)
+  {
+    log::error(log);
+    log::error("Please check your Dynamixel ID");
+  }
+  else
+  {
+    char str[100];
+    sprintf(str, "Gripper Dynamixel ID : %d, Model Name :", dynamixel_.id.at(0));
+    strcat(str, dynamixel_workbench_->getModelName(dynamixel_.id.at(0)));
+    log::println(str);
+
+    result = dynamixel_workbench_->setVelocityBasedProfile(dynamixel_.id.at(0), &log);
+    if(result == false)
+    {
+      log::error(log);
+      log::error("Please check your Dynamixel firmware version (v38~)");
+    }
+
+    result = dynamixel_workbench_->writeRegister(dynamixel_.id.at(0), return_delay_time_char, 0, &log);
+    if (result == false)
+    {
+      log::error(log);
+      log::error("Please check your Dynamixel firmware version");
+    }
+  }
+
+  return true;
+}
+
+void RotorTool::setMode(const void *arg)
+{
+  bool result = false;
+  const char* log = NULL;
+
+  STRING *get_arg_ = (STRING *)arg;
+
+  if (get_arg_[0] == "velocity_mode")
+  {
+    result = RotorTool::setOperatingMode();
+    if (result == false)
+      return;
+  }
+  else
+  {
+    result = RotorTool::writeProfileValue(get_arg_[0], std::atoi(get_arg_[1].c_str()));
+    if (result == false)
+      return;
+  }
+
+  result = RotorTool::setSDKHandler();
+  if (result == false)
+    return;
+}
+
+uint8_t RotorTool::getId()
+{
+  return dynamixel_.id.at(0);
+}
+
+void RotorTool::enable()
+{
+  const char* log = NULL;
+  bool result = false;
+  
+  result = dynamixel_workbench_->torqueOn(dynamixel_.id.at(0), &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+  enabled_state_ = true;
+}
+
+void RotorTool::disable()
+{
+  const char* log = NULL;
+  bool result = false;
+  
+  result = dynamixel_workbench_->torqueOff(dynamixel_.id.at(0), &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+  enabled_state_ = false;
+}
+
+bool RotorTool::sendToolActuatorValue(robotis_manipulator::ActuatorValue value)
+{
+  return RotorTool::writeGoalVelocity(value.velocity);
+}
+
+robotis_manipulator::ActuatorValue RotorTool::receiveToolActuatorValue()
+{
+  robotis_manipulator::ActuatorValue result;
+  result.position = 0.0;
+  result.velocity = RotorTool::receiveDynamixelValue();
+  result.acceleration = 0.0;
+  result.effort = 0.0;
+  return result;
+}
+
+bool RotorTool::setOperatingMode()
+{
+  const char* log = NULL;
+  bool result = false;
+
+  result = dynamixel_workbench_->setVelocityControlMode(dynamixel_.id.at(0),&log);
+
+  if (result == false)
+  {
+    log::error(log);
+  }
+  
+  return true;
+}
+
+bool RotorTool::writeProfileValue(STRING profile_mode, uint32_t value)
+{
+  const char* log = NULL;
+  bool result = false;
+
+  const char * char_profile_mode = profile_mode.c_str();
+
+  result = dynamixel_workbench_->writeRegister(dynamixel_.id.at(0), char_profile_mode, value, &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+
+  return true;
+}
+
+bool RotorTool::setSDKHandler()
+{
+  bool result = false;
+  const char* log = NULL;
+
+  result = dynamixel_workbench_->addSyncWriteHandler(dynamixel_.id.at(0), "Goal_Velocity", &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+
+  result = dynamixel_workbench_->addSyncReadHandler(dynamixel_.id.at(0),
+                                                    "Present_Velocity", 
+                                                    &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+
+  return true;
+}
+
+bool RotorTool::writeGoalVelocity(double velocity)
+{
+  bool result = false;
+  const char* log = NULL;
+
+  int32_t goal_velocity = 0;
+
+  goal_velocity = dynamixel_workbench_->convertVelocity2Value(dynamixel_.id.at(0), velocity);
+
+  result = dynamixel_workbench_->syncWrite(SYNC_WRITE_HANDLER, &goal_velocity, &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+
+  return true;
+}
+
+double RotorTool::receiveDynamixelValue()
+{
+  bool result = false;
+  const char* log = NULL;
+
+  int32_t get_value = 0;
+  uint8_t id_array[1] = {dynamixel_.id.at(0)};
+
+  result = dynamixel_workbench_->syncRead(SYNC_READ_HANDLER_FOR_PRESENT_POSITION_VELOCITY_CURRENT, 
+                                          id_array,
+                                          (uint8_t)1, //might have to change to 2
+                                          &log);
+  if (result == false)
+  {
+    log::error(log);
+  }
+
+  result = dynamixel_workbench_->getSyncReadData(SYNC_READ_HANDLER_FOR_PRESENT_POSITION_VELOCITY_CURRENT, 
+                                            id_array,
+                                            (uint8_t)1,   //might have to change to 2
+                                            &get_value, 
+                                            &log);
+  if (result == false)
+  {
+    log::error(log);
+  } 
+
+  return dynamixel_workbench_->convertValue2Velocity(dynamixel_.id.at(0), get_value);
+}
+
+
