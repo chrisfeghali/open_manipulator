@@ -402,12 +402,12 @@ bool OpenManipulatorController::goalTaskSpacePathFromPresentOrientationOnlyCallb
   return true;
 }
 
-bool OpenManipulatorController::goalToolControlCallback(open_manipulator_msgs::SetJointPosition::Request  &req,
-                                                        open_manipulator_msgs::SetJointPosition::Response &res)
+bool OpenManipulatorController::goalToolControlCallback(open_manipulator_msgs::SetJointVelocity::Request  &req,
+                                                        open_manipulator_msgs::SetJointVelocity::Response &res)
 {
-  for (int i = 0; i < req.joint_position.joint_name.size(); i ++)
+  for (int i = 0; i < req.joint_velocity.joint_name.size(); i ++)
   {
-    if (!open_manipulator_.makeToolTrajectory(req.joint_position.joint_name.at(i), req.joint_position.position.at(i)))
+    if (!open_manipulator_.makeToolVelocity(req.joint_velocity.joint_name.at(i), req.joint_velocity.velocity.at(i)))
       res.is_planned = false;
     else
       res.is_planned = true;

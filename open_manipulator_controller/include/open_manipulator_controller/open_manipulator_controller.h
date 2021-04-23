@@ -33,10 +33,12 @@
 
 #include "open_manipulator_libs/open_manipulator.h"
 #include "open_manipulator_msgs/SetJointPosition.h"
+#include "open_manipulator_msgs/SetJointVelocity.h"
 #include "open_manipulator_msgs/SetKinematicsPose.h"
 #include "open_manipulator_msgs/SetDrawingTrajectory.h"
 #include "open_manipulator_msgs/SetActuatorState.h"
 #include "open_manipulator_msgs/GetJointPosition.h"
+#include "open_manipulator_msgs/GetJointVelocity.h"
 #include "open_manipulator_msgs/GetKinematicsPose.h"
 #include "open_manipulator_msgs/OpenManipulatorState.h"
 
@@ -161,8 +163,8 @@ class OpenManipulatorController
   bool goalTaskSpacePathFromPresentOrientationOnlyCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,
                                                            open_manipulator_msgs::SetKinematicsPose::Response &res);
 
-  bool goalToolControlCallback(open_manipulator_msgs::SetJointPosition::Request  &req,
-                               open_manipulator_msgs::SetJointPosition::Response &res);
+  bool goalToolControlCallback(open_manipulator_msgs::SetJointVelocity::Request  &req,
+                               open_manipulator_msgs::SetJointVelocity::Response &res);
 
   bool setActuatorStateCallback(open_manipulator_msgs::SetActuatorState::Request  &req,
                                 open_manipulator_msgs::SetActuatorState::Response &res);
