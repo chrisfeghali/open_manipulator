@@ -169,12 +169,12 @@
   </link>
 
   <!--  Gripper joint -->
-  <joint name="gripper" type="revolute">
+  <joint name="gripper" type="continuous">
     <parent link="link5"/>
     <child link="gripper_link"/>
     <origin xyz="0.1 0 0.015" rpy="0 1.571 0"/>
     <axis xyz="1 0 0"/>
-    <limit velocity="4.8" effort="1" lower="-0.010" upper="0.019" />
+    <limit velocity="50" effort="1" lower="${-pi*0.57}" upper="${pi*0.65}" />
   </joint>
 
   <!--  Gripper link -->
@@ -204,11 +204,11 @@
   </link>
 
   <!--  Gripper joint sub -->
-  <joint name="gripper_sub" type="prismatic">
+  <joint name="gripper_sub" type="revolute">
     <parent link="link5"/>
     <child link="gripper_link_sub"/>
     <origin xyz="0.0817 -0.021 0" rpy="0 0 0"/>
-    <axis xyz="0 -1 0"/>
+    <axis xyz="0 1 0"/>
     <limit velocity="4.8" effort="1" lower="-0.010" upper="0.019" />
     <mimic joint="gripper" multiplier="1"/>
   </joint>
